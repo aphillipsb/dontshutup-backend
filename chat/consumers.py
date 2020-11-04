@@ -40,21 +40,8 @@ def obtain_user_email(word_list):
         if "#" in word_list[i] and "@" in word_list[i]:
             tagged.append(word_list[i].strip("#"))
     return tagged
+            
 
-def file_url(file_name):
-    AWS_ACCESS_ID = os.environ.get('AWS_ACCESS_ID')
-    AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
-    s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_ID,
-        aws_secret_access_key=AWS_SECRET_KEY)
-    params = {
-        'Bucket': 'iic2173-chat-images-resized',
-        'Key': file_name,
-        'Filename': file_name,
-        'ExpiresIn': 86400
-    }
-    url = s3.generate_presigned_url('download_file', params)
-    return url
-    #s3.download_file('iic2173-chat-images-resized', file_name, file_name)
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -95,10 +82,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             api_call_sns(string_to_send)
 
         print('words:', words, end="\n\n")
-
-        if '.jpg' in cmd or 'png' in cmd:
-            cmd = file_url(cmd)
-
         try:
             room = ChatRoom.objects.get(topic=self.room_name)
         except ChatRoom.DoesNotExist:
@@ -145,35 +128,3 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': message
         }))
-
-
-// Detecting the dominant language of the text
-  comprehend.detectDominantLanguage(params, function (err, result) {
-    if (!err) {
-      const language = result.Languages[0].LanguageCode;
-      const sentimentParams = {
-        Text: text,
-        LanguageCode: language
-      };
-      // Analyze the sentiment
-      comprehend.detectSentiment(sentimentParams, function (err, data) {
-        if (err) {
-          callback(null, {
-            statusCode: 400,
-            headers: {
-              "Access-Control-Allow-Origin": "*"
-            },
-            body: JSON.stringify(err)
-          });
-        } else {
-          callback(null, {
-            statusCode: 200,
-            headers: {
-              "Access-Control-Allow-Origin": "*"
-            },
-            body: JSON.stringify(data)
-          });
-        }
-      });
-    }
-  });
